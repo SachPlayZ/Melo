@@ -108,7 +108,7 @@ const RecommendedMusic = () => {
         onClick={handleUp}
         className=" bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
       >
-        <img src="src/assets/upload.png" alt="Up" className="h-4 w-4 invert" />
+        <img src="/upload.png" alt="Up" className="h-4 w-4 invert" />
       </button>
         {recommendedMusic.map((music, index) => {
           return (
@@ -175,7 +175,7 @@ const RecommendedMusic = () => {
         onClick={handleDown}
         className="bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
       >
-        <img src="src/assets/download.png" alt="Up" className="h-4 w-4 invert" />
+        <img src="download.png" alt="Up" className="h-4 w-4 invert" />
       </button>
     </div>
   );

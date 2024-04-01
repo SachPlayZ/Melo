@@ -5,7 +5,7 @@ const Navbar = () => {
     <nav className="bg-transparent py-4 fixed top-0 w-full z-50 backdrop-blur-md shadow-lg">
   <div className="container mx-auto flex justify-between items-center">
     <div className="flex items-center">
-      <img src="src/assets/logo.png" alt="Brand Logo" className="h-8 w-8 mr-2 ms-6" />
+      <img src="logo.png" alt="Brand Logo" className="h-8 w-8 mr-2 ms-6" />
       <span className="text-white text-lg font-bold">Melo</span>
     </div>
 
