@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 
 const ApiController = (() => {
-  const clientId = "46aac0a62444457fb2e169c39e4e0b78";
-  const clientSecret = "8499e72445b540e58e095cfae15fb349";
+  const clientId = "";
+  const clientSecret = "";
 
   const getToken = async () => {
     const result = await fetch("https://accounts.spotify.com/api/token", {
