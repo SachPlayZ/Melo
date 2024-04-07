@@ -4,7 +4,7 @@ import RecommendedMusic from "./RecommendedMusic";
 const LandingPageDesc = () => {
   return (
     <div className="h-auto w-full bg-slate-950 flex flex-col">
-      <div className="flex flex-col justify-center text-white pt-12">
+      <div id="about" className="flex flex-col justify-center text-white pt-12">
         <h1 className="text-7xl font-bold text-center top-0">
           Welcome to Melo
         </h1>

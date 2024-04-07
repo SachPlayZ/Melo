@@ -1,12 +1,17 @@
-import LandingPageDesc from "./LandingPageDesc";
-import MultiLayeredParallax from "./MultiLayeredParallax";
+import CallbackPage from "./CallbackPage";
+import LandingPage from "./LandingPage";
 import Navbar from "./Navbar";
+import { Routes, Route } from "react-router-dom";
+
 export default function App() {
   return (
-    <main>
+    <>
       <Navbar />
-      <MultiLayeredParallax />
-      <LandingPageDesc />
-    </main>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/callback" element={<CallbackPage />}>
+        </Route>
+      </Routes>
+    </>
   );
 }

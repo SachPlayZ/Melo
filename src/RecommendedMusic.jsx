@@ -1,75 +1,37 @@
-import React, { useState, useEffect } from "react";
-
-const ApiController = (() => {
-  const clientId = "46aac0a62444457fb2e169c39e4e0b78";
-  const clientSecret = "8499e72445b540e58e095cfae15fb349";
-
-  const getToken = async () => {
-    const result = await fetch("https://accounts.spotify.com/api/token", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Authorization: "Basic " + btoa(clientId + ":" + clientSecret),
-      },
-      body: "grant_type=client_credentials",
-    });
-    const data = await result.json();
-    return data.access_token;
-  };
-
-  return {
-    getToken: getToken,
-  };
-})();
+import React, { useEffect } from 'react';
+import { useAccessToken } from './AccessTokenContext';
 
 const RecommendedMusic = () => {
-  const [recommendedMusic, setRecommendedMusic] = useState([]);
-  const [token, setToken] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null); // New state for handling errors
+  const { accessToken } = useAccessToken();
+  const [recommendedMusic, setRecommendedMusic] = React.useState([]);
+  const [loading, setLoading] = React.useState(true);
+  const [error, setError] = React.useState(null);
+  const [currentIndex, setCurrentIndex] = React.useState(0);
+  const [audio, setAudio] = React.useState(null);
 
   useEffect(() => {
-    ApiController.getToken()
-      .then((data) => {
-        setToken(data);
-      })
-      .catch((error) => {
-        // Handle error in fetching token
-        setError(error);
-      });
-  }, []);
+    if (!accessToken) return;
 
-  useEffect(() => {
-    if (token) {
-      fetch("https://api.spotify.com/v1/playlists/4zO8LVE7qkU7rNwO41WZhu", {
-        method: "GET",
-        headers: {
-          Authorization: "Bearer " + token,
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error("Failed to fetch recommendations");
-          }
-          return response.json();
-        })
-        .then((data) => {
-          setRecommendedMusic(data.tracks.items);
-          console.log(data.tracks);
-          setLoading(false);
-        })
-        .catch((error) => {
-          // Handle error in fetching recommendations
-          setError(error);
-        });
-    }
-  }, [token]);
-
-  if (error) {
-    // Render error message if there's an error
-    console.log(error);
-  }
-  const [currentIndex, setCurrentIndex] = useState(0);
+    fetch("https://api.spotify.com/v1/playlists/4zO8LVE7qkU7rNwO41WZhu", {
+      method: "GET",
+      headers: {
+        Authorization: "Bearer " + accessToken,
+      },
+    })
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error("Failed to fetch recommendations");
+      }
+      return response.json();
+    })
+    .then((data) => {
+      setRecommendedMusic(data.tracks.items);
+      setLoading(false);
+    })
+    .catch((error) => {
+      setError(error);
+    });
+  }, [accessToken]);
 
   const handleUp = () => {
     setCurrentIndex((prevIndex) =>
@@ -82,7 +44,6 @@ const RecommendedMusic = () => {
       prevIndex < recommendedMusic.length - 1 ? prevIndex + 1 : 0
     );
   };
-  const [audio, setAudio] = useState(null);
 
   const togglePlayPause = (music) => {
     if (!audio || audio.src !== music.track.preview_url) {
@@ -99,34 +60,41 @@ const RecommendedMusic = () => {
     }
   };
 
+  if (loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (error) {
+    return <div>Error: {error.message}</div>;
+  }
+
   return (
     <div className="flex flex-col gap-2 items-center pb-6">
-        <h1 className=" text-4xl font-bold text-gray-900 dark:text-white mb-6">
-            Recommended Music
-        </h1>
+      <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+        Recommended Music
+      </h1>
       <button
         onClick={handleUp}
-        className=" bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
+        className="bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
       >
         <img src="/upload.png" alt="Up" className="h-4 w-4 invert" />
       </button>
-        {recommendedMusic.map((music, index) => {
-          return (
-            <div
-            className={`transition-all duration-500 ${
-                index === currentIndex
-                  ? "flex items-center h-16 w-1/2 p-6 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon"
-                  : "hidden"
-              }`}
-              key={music.id}
-            >
-                <div className="relative">
-              <img
-                src={music.track.album.images[0].url}
-                alt=".."
-                className="h-10 w-10 rounded-lg"
-              />
-              <button
+      {recommendedMusic.map((music, index) => (
+        <div
+          key={music.id}
+          className={`transition-all duration-500 ${
+            index === currentIndex
+              ? "flex items-center h-16 w-1/2 p-6 bg-white border border-gray-200 rounded-lg hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon"
+              : "hidden"
+          }`}
+        >
+          <div className="relative">
+            <img
+              src={music.track.album.images[0].url}
+              alt="Album Cover"
+              className="h-10 w-10 rounded-lg"
+            />
+            <button
               className="absolute top-0 left-0 w-full h-full flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity duration-300"
               onClick={() => togglePlayPause(music)}
             >
@@ -162,20 +130,22 @@ const RecommendedMusic = () => {
                 </svg>
               )}
             </button>
+          </div>
+          <div className="ms-6 flex flex-col">
+            <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">
+              {music.track.name}
+            </h1>
+            <p className="mb-1 font-normal text-gray-700 dark:text-gray-400 text-xs">
+              {music.track.artists[0].name}
+            </p>
+          </div>
         </div>
-              <div className="ms-6 flex flex-col">
-              <h1 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{music.track.name}</h1>
-              <p className="mb-1 font-normal text-gray-700 dark:text-gray-400 text-xs">{music.track.artists[0].name}</p>
-                
-              </div>
-            </div>
-          );
-        })}
+      ))}
       <button
         onClick={handleDown}
         className="bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
       >
-        <img src="download.png" alt="Up" className="h-4 w-4 invert" />
+        <img src="download.png" alt="Down" className="h-4 w-4 invert" />
       </button>
     </div>
   );

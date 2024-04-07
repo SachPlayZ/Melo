@@ -12,6 +12,7 @@ export default function MultiLayerParallax() {
 
   return (
     <div
+      id="home"
       ref={ref}
       className="w-full h-screen overflow-hidden relative grid place-items-center"
     >
