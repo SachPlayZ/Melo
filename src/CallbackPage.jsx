@@ -1,12 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAccessToken } from './AccessTokenContext';
 
 const CallbackPage = () => {
   const { setAccessToken } = useAccessToken();
   const navigate = useNavigate();
-  const clientID = process.env.CLIENT_ID
-  const clientSecret = process.env.CLIENT_SECRET
+  const clientID = process.env.CLIENT_ID;
+  const clientSecret = process.env.CLIENT_SECRET;
+  const [error, setError] = useState(null); // State to handle errors
 
   useEffect(() => {
     const exchangeCodeForToken = async () => {
@@ -26,18 +27,26 @@ const CallbackPage = () => {
               client_secret: clientSecret
             }),
           });
+          if (!response.ok) {
+            throw new Error('Failed to exchange code for token');
+          }
           const data = await response.json();
           const accessToken = data.access_token;
           setAccessToken(accessToken); // Set the access token in context
           navigate('/');
         }
       } catch (error) {
-        console.error('Error exchanging code for token:', error);
+        setError(error); // Set the error state if an error occurs
       }
     };
 
     exchangeCodeForToken();
-  }, [setAccessToken, navigate]);
+  }, [setAccessToken, navigate, clientID, clientSecret]);
+
+  // Render error message if there's an error
+  if (error) {
+    navigate('/');
+  }
 
   return <div>Processing...</div>;
 };
