@@ -1,37 +1,65 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAccessToken } from './AccessTokenContext';
 
 const RecommendedMusic = () => {
   const { accessToken } = useAccessToken();
-  const [recommendedMusic, setRecommendedMusic] = React.useState([]);
-  const [loading, setLoading] = React.useState(true);
-  const [error, setError] = React.useState(null);
-  const [currentIndex, setCurrentIndex] = React.useState(0);
-  const [audio, setAudio] = React.useState(null);
+  const [recommendedMusic, setRecommendedMusic] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [audio, setAudio] = useState(null);
+  const [userTopArtists, setUserTopArtists] = useState([]);
 
   useEffect(() => {
     if (!accessToken) return;
 
-    fetch("https://api.spotify.com/v1/playlists/4zO8LVE7qkU7rNwO41WZhu", {
-      method: "GET",
-      headers: {
-        Authorization: "Bearer " + accessToken,
-      },
-    })
-    .then((response) => {
-      if (!response.ok) {
-        throw new Error("Failed to fetch recommendations");
+    const fetchTopArtists = async () => {
+      try {
+        const topArtistsResponse = await fetch("https://api.spotify.com/v1/me/top/artists?time_range=medium_term&limit=3", {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!topArtistsResponse.ok) {
+          throw new Error("Failed to fetch top artists");
+        }
+        const topArtistsData = await topArtistsResponse.json();
+        setUserTopArtists(topArtistsData.items);
+      } catch (error) {
+        setError(error);
       }
-      return response.json();
-    })
-    .then((data) => {
-      setRecommendedMusic(data.tracks.items);
-      setLoading(false);
-    })
-    .catch((error) => {
-      setError(error);
-    });
+    };
+
+    fetchTopArtists();
   }, [accessToken]);
+
+  useEffect(() => {
+    if (userTopArtists.length === 0) return;
+
+    const seedArtists = userTopArtists.map(artist => artist.id).join(",");
+    // const query = `https://api.spotify.com/v1/recommendations?seed_artists=${seedArtists}&limit=30`;
+    const query = `https://api.spotify.com/v1/recommendations?seed_artists=4NHQUGzhtTLFvgF5SZesLK&seed_genres=classical%2Ccountry&seed_tracks=0c6xIDDpzE81m2q797ordA`;
+
+    const fetchRecommendations = async () => {
+      try {
+        const response = await fetch(query, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (!response.ok) {
+          throw new Error("Failed to fetch recommendations");
+        }
+        const data = await response.json();
+        setRecommendedMusic(data.tracks);
+        setLoading(false);
+      } catch (error) {
+        setError(error);
+      }
+    };
+
+    fetchRecommendations();
+  }, [accessToken, userTopArtists]);
 
   const handleUp = () => {
     setCurrentIndex((prevIndex) =>
@@ -60,6 +88,16 @@ const RecommendedMusic = () => {
     }
   };
 
+  if (!accessToken) {
+    return (
+      <div className="text-center">
+        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
+          Login to Spotify to show Recommendations
+        </h1>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -73,10 +111,7 @@ const RecommendedMusic = () => {
       <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-6">
         Recommended Music
       </h1>
-      <button
-        onClick={handleUp}
-        className="bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
-      >
+      <button onClick={handleUp}>
         <img src="/upload.png" alt="Up" className="h-4 w-4 invert" />
       </button>
       {recommendedMusic.map((music, index) => (
@@ -141,10 +176,7 @@ const RecommendedMusic = () => {
           </div>
         </div>
       ))}
-      <button
-        onClick={handleDown}
-        className="bg-white border border-gray-200 hover:bg-gray-100 dark:bg-gray-800 dark:border-gray-700 dark:hover:bg-gray-700 shadow-neon py-4 px-4 rounded-full"
-      >
+      <button onClick={handleDown}>
         <img src="download.png" alt="Down" className="h-4 w-4 invert" />
       </button>
     </div>

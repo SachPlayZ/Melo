@@ -5,8 +5,8 @@ import { useAccessToken } from './AccessTokenContext';
 const CallbackPage = () => {
   const { setAccessToken } = useAccessToken();
   const navigate = useNavigate();
-  const clientID = process.env.CLIENT_ID;
-  const clientSecret = process.env.CLIENT_SECRET;
+  const clientID = "46aac0a62444457fb2e169c39e4e0b78";
+  const clientSecret = "8499e72445b540e58e095cfae15fb349";
   const [error, setError] = useState(null); // State to handle errors
 
   useEffect(() => {
@@ -22,7 +22,7 @@ const CallbackPage = () => {
             body: new URLSearchParams({
               grant_type: 'authorization_code',
               code: code,
-              redirect_uri: 'https://melo-kappa.vercel.app/callback',
+              redirect_uri: 'http://localhost:5173/callback',
               client_id: clientID,
               client_secret: clientSecret
             }),
@@ -41,12 +41,14 @@ const CallbackPage = () => {
     };
 
     exchangeCodeForToken();
-  }, [setAccessToken, navigate, clientID, clientSecret]);
+  }, [setAccessToken, navigate]);
 
-  // Render error message if there's an error
-  if (error) {
-    navigate('/');
-  }
+  useEffect(() => {
+    // Navigate to '/' if an error occurs
+    if (error) {
+      navigate('/');
+    }
+  }, [error, navigate]);
 
   return <div>Processing...</div>;
 };

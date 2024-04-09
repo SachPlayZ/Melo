@@ -1,13 +1,45 @@
-import React from "react";
+import React, { useEffect, useState } from 'react';
 import RecommendedMusic from "./RecommendedMusic";
+import { useAccessToken } from "./AccessTokenContext";
 
 const LandingPageDesc = () => {
+  const { accessToken } = useAccessToken();
+  const [userDetails, setUserDetails] = useState(null);
+
+  useEffect(() => {
+    if (!accessToken) return;
+
+    const fetchUserDetails = async () => {
+      try {
+        const response = await fetch('https://api.spotify.com/v1/me', {
+          method: 'GET',
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUserDetails(data);
+        } else {
+          throw new Error('Failed to fetch user details');
+        }
+      } catch (error) {
+        console.error('Error fetching user details:', error);
+      }
+    };
+
+    fetchUserDetails();
+  }, [accessToken]);
+
   return (
     <div className="h-auto w-full bg-slate-950 flex flex-col">
       <div id="about" className="flex flex-col justify-center text-white pt-12">
         <h1 className="text-7xl font-bold text-center top-0">
           Welcome to Melo
         </h1>
+        <h2 className="text-4xl font-semibold text-center mt-4">
+          {userDetails ? `Hello, ${userDetails.display_name}!` : ''}
+        </h2>
         <p className="text-center mt-4 text-lg">
           Step up your music game with us ❤️
         </p>
